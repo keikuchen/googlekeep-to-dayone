@@ -31,12 +31,23 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
             labels = note.get("labels", [])
             label_names = [label.get("name") for label in labels]
 
+            photos = [
+                {
+                    "orderInEntry": i,
+                    "type": "jpeg",
+                    # ".jpg"を削る
+                    "md5": attachment.get("filePath", "")[:-4],
+                }
+                for i, attachment in enumerate(note.get("attachments", []))
+            ]
+
             day_one_entry = {
                 "creationDate": created_time,
                 "modifiedDate": modified_time,
                 "title": title,
                 "text": content,
-                "tags": label_names,  # Add tags if needed
+                "tags": label_names,
+                "photos": photos,
             }
             day_one_entries.append(day_one_entry)
 
