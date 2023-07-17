@@ -28,12 +28,15 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
                     modified_time / 1000000
                 ).isoformat()
 
+            labels = note.get("labels", [])
+            label_names = [label.get("name") for label in labels]
+
             day_one_entry = {
                 "creationDate": created_time,
                 "modifiedDate": modified_time,
                 "title": title,
                 "text": content,
-                "tags": [],  # Add tags if needed
+                "tags": label_names,  # Add tags if needed
             }
             day_one_entries.append(day_one_entry)
 
