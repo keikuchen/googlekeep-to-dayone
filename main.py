@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta, timezone
 
 
 def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
@@ -16,43 +17,42 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
             title = note.get("title", "")
             content = note.get("textContent", "")
 
+            utc = timezone(timedelta(hours=0), "UTC")
             created_time = note.get("createdTimestampUsec", "")
             if created_time:
                 created_time = datetime.fromtimestamp(
-                    created_time / 1000000
+                    created_time / 1000000, utc
                 ).isoformat()
 
             modified_time = note.get("userEditedTimestampUsec", "")
             if modified_time:
                 modified_time = datetime.fromtimestamp(
-                    modified_time / 1000000
+                    modified_time / 1000000, utc
                 ).isoformat()
 
             labels = note.get("labels", [])
             label_names = [label.get("name") for label in labels]
 
-            photos = [
-                {
-                    "orderInEntry": i,
-                    "type": "jpeg",
-                    # ".jpg"を削る
-                    "md5": attachment.get("filePath", "")[:-4],
-                }
-                for i, attachment in enumerate(note.get("attachments", []))
-            ]
-
             day_one_entry = {
-                "creationDate": created_time,
-                "modifiedDate": modified_time,
-                "title": title,
-                "text": content,
+                # 小数点, ミリ秒6桁, タイムゾーン表記(+00:00)を消し、Zを付与
+                "creationDate": f"{created_time[:-13]}Z",
+                "modifiedDate": f"{modified_time[:-13]}Z",
+                "uuid": uuid.uuid4().hex.upper(),
+                "text": f"{title}\n{content}",
                 "tags": label_names,
-                "photos": photos,
+                "starred": False,
+                "duration": 0,
+                "isAllDay": False,
+                "isPinned": False,
+                "editingTime": 0,
+                "timeZone": "Asia/Tokyo",
             }
             day_one_entries.append(day_one_entry)
 
+    entries_data = {"metadata": {"version": "1.0"}, "entries": day_one_entries}
+
     with open(day_one_json_file, "w", encoding="utf-8") as day_one_file:
-        json.dump(day_one_entries, day_one_file, ensure_ascii=False, indent=4)
+        json.dump(entries_data, day_one_file, ensure_ascii=False, indent=4)
 
     print("Conversion completed successfully.")
 
@@ -60,7 +60,7 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
 # Google Keepエントリーフォルダのパス
 keep_folder_path = "keep_entries_folder"
 # Day OneにインポートするJSONファイルのパス
-day_one_json_file = "day_one_entries.json"
+day_one_json_file = "imported.json"
 
 # Google KeepからDay Oneに変換
 convert_google_keep_to_day_one(keep_folder_path, day_one_json_file)
