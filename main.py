@@ -34,7 +34,7 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
             label_names = [label.get("name") for label in labels]
 
             day_one_entry = {
-                # 小数点, ミリ秒6桁, タイムゾーン表記(+00:00)を消し、Zを付与
+                # 小数点, ミリ秒6桁, タイムゾーン表記6文字(+00:00)を消し、Zを付与
                 "creationDate": f"{created_time[:-13]}Z",
                 "modifiedDate": f"{modified_time[:-13]}Z",
                 "uuid": uuid.uuid4().hex.upper(),
@@ -57,10 +57,10 @@ def convert_google_keep_to_day_one(keep_folder_path, day_one_json_file):
     print("Conversion completed successfully.")
 
 
-# Google Keepエントリーフォルダのパス
+# input(Google Keepからexportしたjsonファイル群が入ったディレクトリ)のパス
 keep_folder_path = "keep_entries_folder"
-# Day OneにインポートするJSONファイルのパス
-day_one_json_file = "imported.json"
+# output(Day Oneにインポートするjsonファイル)のパス
+day_one_json_file = "toBeImported.json"
 
 # Google KeepからDay Oneに変換
 convert_google_keep_to_day_one(keep_folder_path, day_one_json_file)
